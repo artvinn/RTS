@@ -1,8 +1,15 @@
 import Grid;
 
 class Pathfinding
-{
-	public function findPath(start: Node, end: Node, grid: Array<Node>)
+{	
+	private var _grid : Grid;
+
+	public function new(grid : Grid)
+	{
+		this._grid = grid;
+	}
+
+	public function findPath(start: Node, end: Node):Array<Dynamic>
 	{
 		var frontier = [start];
 		var visited = [];
@@ -15,7 +22,7 @@ class Pathfinding
 			current = getMinF(frontier);
 			frontier.remove(current);
 
-			for (neib in grid.getNeighbors(current))
+			for (neib in _grid.getNeighbors(current))
 			{
 				if (neib.walkable && !neib.isInArray(visited))
 				{
@@ -41,6 +48,7 @@ class Pathfinding
 				break;
 			}
 		}
+		return path;
 	}
 
 	//  Approximate cost of path from current node to end node

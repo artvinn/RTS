@@ -41,6 +41,9 @@ class Main extends luxe.Game
 
 	private var grid : Grid;
 
+	public var nodes : Array<Dynamic>;
+	public var path : Pathfinding;
+
 	override function config(config:luxe.AppConfig) {
 		config.preload.textures.push( { id:'assets/grass.png' } );
 
@@ -60,13 +63,15 @@ class Main extends luxe.Game
 			size: new Vector(32, 32),
 			centered: true
 		});
+		grass.add(new components.MoveByPath({name: 'move'}));
 		grass.add(new components.MoveToPoint({name: 'rotator'}));
 		units.push(grass);
 
         grid = new Grid(480, 480);
         grid.makeGrid();
-        var z = Pathfinding.findPath(grid.grid[0], grid.grid[5], grid);
-        trace(z);
+        path = new Pathfinding(grid);
+        nodes = path.findPath(grid.grid[0], grid.grid[5]);
+        trace(nodes);
 	}
 
 	override function update(dt:Float)
@@ -133,7 +138,8 @@ class Main extends luxe.Game
 			{
 				if (unit.selected)
 				{	
-					unit.events.fire('move_to_point', {coords:event.pos});
+					//unit.events.fire('move_to_point', {coords:event.pos});
+					unit.events.fire('move', {nodes:nodes});
 				}
 			}
 		}
