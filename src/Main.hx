@@ -69,8 +69,7 @@ class Main extends luxe.Game
 
         grid = new Grid(480, 480);
         grid.makeGrid();
-        path = new Pathfinding(grid);
-        nodes = path.findPath(grid.grid[0], grid.grid[5]);
+        nodes = Pathfinding.findPath(grid.grid[0], grid.grid[5], grid);
         trace(nodes);
 	}
 

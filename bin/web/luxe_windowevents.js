@@ -560,12 +560,13 @@ Main.prototype = $extend(luxe_Game.prototype,{
 		this.grassTexture = Luxe.resources.cache.get("assets/grass.png");
 		var mono = Luxe.resources.cache.get("assets/fonts/font.fnt");
 		var grass = new entities_Unit({ name : "grass", texture : this.grassTexture, pos : new phoenix_Vector(164,Luxe.core.screen.get_mid().y), size : new phoenix_Vector(32,32), centered : true});
+		grass.add(new components_MoveByPath({ name : "move"}));
 		grass.add(new components_MoveToPoint({ name : "rotator"}));
 		this.units.push(grass);
 		this.grid = new Grid(480,480);
 		this.grid.makeGrid();
-		var z = new Pathfinding(this.grid).findPath(this.grid.grid[0],this.grid.grid[5]);
-		haxe_Log.trace(z,{ fileName : "Main.hx", lineNumber : 69, className : "Main", methodName : "ready"});
+		this.nodes = Pathfinding.findPath(this.grid.grid[0],this.grid.grid[5],this.grid);
+		haxe_Log.trace(this.nodes,{ fileName : "Main.hx", lineNumber : 73, className : "Main", methodName : "ready"});
 	}
 	,update: function(dt) {
 		this.draw_selection();
@@ -595,7 +596,7 @@ Main.prototype = $extend(luxe_Game.prototype,{
 			if(event.button == 1) {
 				if(!unit.selected && unit.point_inside(event.pos)) unit.selected = true; else if(unit.selected && !unit.point_inside(event.pos)) unit.selected = false;
 			} else if(event.button == 3) {
-				if(unit.selected) unit.events.fire("move_to_point",{ coords : event.pos});
+				if(unit.selected) unit.events.fire("move",{ nodes : this.nodes});
 			}
 		}
 	}
@@ -621,61 +622,56 @@ Main.prototype = $extend(luxe_Game.prototype,{
 	,__class__: Main
 });
 Math.__name__ = ["Math"];
-var Pathfinding = function(grid) {
-	this._grid = grid;
-};
+var Pathfinding = function() { };
 $hxClasses["Pathfinding"] = Pathfinding;
 Pathfinding.__name__ = ["Pathfinding"];
-Pathfinding.prototype = {
-	findPath: function(start,end) {
-		var frontier = [start];
-		var visited = [];
-		var goal = end;
-		var path = [];
-		var current;
-		while(frontier.length > 0) {
-			current = this.getMinF(frontier);
-			HxOverrides.remove(frontier,current);
-			var _g = 0;
-			var _g1 = this._grid.getNeighbors(current);
-			while(_g < _g1.length) {
-				var neib = _g1[_g];
-				++_g;
-				if(neib.walkable && !neib.isInArray(visited)) {
-					neib.parentNode = current;
-					neib.G = neib.parentNode.G + 10;
-					neib.H = this.heuristic(goal,neib);
-					neib.F = neib.G + neib.H;
-					frontier.push(neib);
-				}
-			}
-			visited.push(current);
-			if(goal.isInArray(frontier) || frontier.length == 0) {
-				var node = current;
-				while(node != null) {
-					path.push([node.x,node.y,node.walkable]);
-					node = node.parentNode;
-				}
-				return path;
-				break;
+Pathfinding.findPath = function(start,end,grid) {
+	var frontier = [start];
+	var visited = [];
+	var goal = end;
+	var path = [];
+	var current;
+	while(frontier.length > 0) {
+		current = Pathfinding.getMinF(frontier);
+		HxOverrides.remove(frontier,current);
+		var _g = 0;
+		var _g1 = grid.getNeighbors(current);
+		while(_g < _g1.length) {
+			var neib = _g1[_g];
+			++_g;
+			if(neib.walkable && !neib.isInArray(visited)) {
+				neib.parentNode = current;
+				neib.G = neib.parentNode.G + 10;
+				neib.H = Pathfinding.heuristic(goal,neib);
+				neib.F = neib.G + neib.H;
+				frontier.push(neib);
 			}
 		}
-		return path;
+		visited.push(current);
+		if(goal.isInArray(frontier) || frontier.length == 0) {
+			var node = current;
+			while(node != null) {
+				path.push([node.x,node.y,node.walkable]);
+				node = node.parentNode;
+			}
+			return path;
+			break;
+		}
 	}
-	,heuristic: function(node,goal) {
-		var D = 10;
-		var dx = Math.abs(node.x - goal.x);
-		var dy = Math.abs(node.y - goal.y);
-		return D * (dx + dy);
-	}
-	,getMinF: function(nodes) {
-		nodes.sort(function(a,b) {
-			if(a.F == b.F) return 0;
-			if(a.F > b.F) return 1; else return -1;
-		});
-		return nodes[0];
-	}
-	,__class__: Pathfinding
+	return path;
+};
+Pathfinding.heuristic = function(node,goal) {
+	var D = 10;
+	var dx = Math.abs(node.x - goal.x);
+	var dy = Math.abs(node.y - goal.y);
+	return D * (dx + dy);
+};
+Pathfinding.getMinF = function(nodes) {
+	nodes.sort(function(a,b) {
+		if(a.F == b.F) return 0;
+		if(a.F > b.F) return 1; else return -1;
+	});
+	return nodes[0];
 };
 var Reflect = function() { };
 $hxClasses["Reflect"] = Reflect;
@@ -1067,6 +1063,34 @@ luxe_Component.prototype = $extend(luxe_ID.prototype,{
 	}
 	,__class__: luxe_Component
 	,__properties__: {set_origin:"set_origin",get_origin:"get_origin",set_scale:"set_scale",get_scale:"get_scale",set_rotation:"set_rotation",get_rotation:"get_rotation",set_pos:"set_pos",get_pos:"get_pos",set_entity:"set_entity",get_entity:"get_entity"}
+});
+var components_MoveByPath = function(_options) {
+	this.max_rotate_speed = 60;
+	this.rotate_speed = 10;
+	luxe_Component.call(this,_options);
+};
+$hxClasses["components.MoveByPath"] = components_MoveByPath;
+components_MoveByPath.__name__ = ["components","MoveByPath"];
+components_MoveByPath.__super__ = luxe_Component;
+components_MoveByPath.prototype = $extend(luxe_Component.prototype,{
+	init: function() {
+		this.sprite = this.get_entity();
+		this.sprite.events.listen("move",$bind(this,this.move_to));
+	}
+	,move_to: function(data) {
+		var x = data[4].x;
+		var y = data[4].y;
+		this.sprite.set_pos(new phoenix_Vector(x,y));
+	}
+	,update: function(dt) {
+	}
+	,ondestroy: function() {
+		luxe_Component.prototype.ondestroy.call(this);
+	}
+	,onremoved: function() {
+		luxe_Component.prototype.onremoved.call(this);
+	}
+	,__class__: components_MoveByPath
 });
 var components_MoveToPoint = function(_options) {
 	this.max_rotate_speed = 60;

@@ -2,14 +2,7 @@ import Grid;
 
 class Pathfinding
 {	
-	private var _grid : Grid;
-
-	public function new(grid : Grid)
-	{
-		this._grid = grid;
-	}
-
-	public function findPath(start: Node, end: Node):Array<Dynamic>
+	static public function findPath(start: Node, end: Node, grid: Grid):Array<Dynamic>
 	{
 		var frontier = [start];
 		var visited = [];
@@ -22,7 +15,7 @@ class Pathfinding
 			current = getMinF(frontier);
 			frontier.remove(current);
 
-			for (neib in _grid.getNeighbors(current))
+			for (neib in grid.getNeighbors(current))
 			{
 				if (neib.walkable && !neib.isInArray(visited))
 				{
@@ -52,7 +45,7 @@ class Pathfinding
 	}
 
 	//  Approximate cost of path from current node to end node
-	public function heuristic(node: Node, goal: Node)
+	static private function heuristic(node: Node, goal: Node)
 	{	
 		var D = 10;
 		var dx = Math.abs(node.x - goal.x);
@@ -61,7 +54,7 @@ class Pathfinding
 	}
 
 	// Get node with minimum F value
-	public function getMinF(nodes: Array<Node>)
+	static private function getMinF(nodes: Array<Node>)
 	{	
 		nodes.sort(function(a: Node, b: Node):Int {
             if (a.F == b.F)
