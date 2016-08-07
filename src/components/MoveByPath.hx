@@ -23,9 +23,7 @@ class MoveByPath extends luxe.Component
     }
 
     function move_to(data) {
-        var x = data[4].x;
-        var y = data[4].y;
-        sprite.pos = new Vector(x, y);
+        sprite.pos = new Vector(data.nodes[0].x * 48 + sprite.size.x / 2, data.nodes[0].y * 48 + sprite.size.y / 2);
     }
 
     override function update( dt:Float ) {

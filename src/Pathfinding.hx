@@ -2,12 +2,12 @@ import Grid;
 
 class Pathfinding
 {	
-	static public function findPath(start: Node, end: Node, grid: Grid):Array<Dynamic>
+	static public function findPath(start: Node, end: Node, grid: Grid):Array<Node>
 	{
 		var frontier = [start];
 		var visited = [];
 		var goal = end;
-		var path:Array<Dynamic> = [];
+		var path:Array<Node> = [];
 		var current;
 
 		while (frontier.length > 0)
@@ -34,7 +34,7 @@ class Pathfinding
 				var node = current;
 				while (node != null)
 				{
-					path.push([node.x, node.y, node.walkable]);
+					path.push(node);
 					node = node.parentNode;
 				}
 				return path;

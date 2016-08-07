@@ -1,3 +1,0 @@
-/**/*.j.js linguist-language=Haxe
-bin/web/lib/howler.js linguist-vendored=true
-bin/web/lib/luxe_windowevents.js linguist-vendored=true

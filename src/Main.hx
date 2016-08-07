@@ -41,7 +41,7 @@ class Main extends luxe.Game
 
 	private var grid : Grid;
 
-	public var nodes : Array<Dynamic>;
+	public var nodes : Array<Node>;
 	public var path : Pathfinding;
 
 	override function config(config:luxe.AppConfig) {
@@ -69,8 +69,8 @@ class Main extends luxe.Game
 
         grid = new Grid(480, 480);
         grid.makeGrid();
-        nodes = Pathfinding.findPath(grid.grid[0], grid.grid[5], grid);
-        trace(nodes);
+        nodes = Pathfinding.findPath(grid.grid[74], grid.grid[56], grid);
+        nodes.reverse();
 	}
 
 	override function update(dt:Float)
